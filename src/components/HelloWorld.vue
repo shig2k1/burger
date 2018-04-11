@@ -1,14 +1,18 @@
 <template lang="pug">
-  v-container
+  v-container(dense)
 
-    Initialize
+    v-layout
+      v-text-field(v-model="message")
+      v-btn(icon,
+      @click="addMessage")
+        v-icon add
 
-    ConversationContainer(
-      v-for="id in convoIds",
-      :conversation="conversations[id]",
-      :id="id",
-      :key="id"
-    )
+    ul(v-if="messages.length > 0")
+      Message(v-for="message in messages",
+      :key="message.id",
+      :message="message",
+      @update="updateMessage")
+    div(v-else) No messages
 
     v-btn(@click="logout") Log out
 </template>
@@ -16,24 +20,25 @@
 <script>
 import firebase from 'firebase'
 
-import Initialize from './Initialize'
-import ConversationContainer from './ConversationContainer'
-
 import { mapState } from 'vuex'
+import Message from './Message'
 
 export default {
   name: 'HelloWorld',
 
   components: {
-    Initialize,
-    ConversationContainer
+    Message
   },
 
   data () {
     return {
       user: null,
       loading: true,
-      cards: []
+      cards: [],
+      message: null,
+      messages: [],
+
+      messagesSub: null
     }
   },
 
@@ -45,9 +50,39 @@ export default {
   },
 
   methods: {
-    init () {
-      this.$store.dispatch('users/seed')
-      this.$store.dispatch('conversations/seed')
+
+    addMessage () {
+      if (this.message) {
+        let msg = {
+          text: this.message,
+          ts: Date.now()
+        }
+        firebase.database().ref('Messages').push(msg)
+          .then(data => {
+            this.message = null
+          }, err => {
+            console.log('err', err)
+          })
+      }
+    },
+
+    updateMessage (message) {
+      console.log(message)
+
+      // get data ref
+      let messageRef = firebase.database().ref('Messages').child(message.id)
+      // update transaction
+      messageRef.transaction(entry => {
+        entry = {
+          ...entry,
+          text: message.text
+        }
+        return entry
+      }).then(data => {
+        console.log('updated')
+      }, err => {
+        console.log(err)
+      })
     },
 
     get () {
@@ -64,7 +99,24 @@ export default {
 
   created () {
     this.user = firebase.auth().currentUser
-    console.log(this.$store.state.db)
+
+    // subscribe to data
+    this.messagesSub = firebase.database().ref('Messages').orderByChild('ts')
+
+    this.messagesSub.on('value', r => {
+      this.messages = []
+      r.forEach(item => {
+        let val = item.val()
+        this.messages.push({
+          ...val,
+          id: item.key
+        })
+      })
+    })
+  },
+
+  beforeDestroy () {
+    this.messagesSub.off()
   }
 }
 </script>

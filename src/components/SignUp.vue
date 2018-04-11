@@ -6,7 +6,8 @@
         v-text-field(v-model="signUpModel.email",
         label="Email")
         v-text-field(v-model="signUpModel.password",
-        label="Password")
+        label="Password",
+        type="password")
 
         v-btn.primary(@click="signUp")
           span Sign up
@@ -22,7 +23,8 @@ export default {
     signUpModel: {
       email: null,
       password: null
-    }
+    },
+    feedback: null
   }),
 
   methods: {
@@ -32,7 +34,7 @@ export default {
           this.$router.replace('hello')
         },
         (err) => {
-          console.log('error!', err)
+          this.feedback = err.message
         })
     }
   }
