@@ -11,15 +11,19 @@ export default {
   name: 'Initialize',
 
   methods: {
-    init () {
+    /* init () {
       this.$store.dispatch('users/seed')
       this.$store.dispatch('conversations/seed')
-    },
+    }, */
 
     get () {
       this.$store.dispatch('users/get')
       this.$store.dispatch('conversations/get')
     }
+  },
+
+  created () {
+    this.get()
   }
 }
 </script>
