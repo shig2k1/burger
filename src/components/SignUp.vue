@@ -27,11 +27,12 @@ export default {
 
   methods: {
     signUp () {
-      firebase.auth().createUserWithEmailAndPassword(this.signUpModel.email, this.signUpModel.password)
-        .then(user => {
-          console.log('Created user', user)
-        }, err => {
-          console.log('Oops ' + err)
+      firebase.auth().createUserWithEmailAndPassword(this.signUpModel.email, this.signUpModel.password).then(
+        (user) => {
+          this.$router.replace('hello')
+        },
+        (err) => {
+          console.log('error!', err)
         })
     }
   }

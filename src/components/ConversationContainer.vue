@@ -1,0 +1,67 @@
+<template lang="pug">
+  div Conversation Id: {{ id }}
+    v-divider
+    Message(
+      v-for="message in conversation.messages",
+      :message="message",
+      :key="message.created")
+
+    v-text-field(v-model="newMessageText",
+    @keyup.enter="send",
+    placeholder="Type something...")
+</template>
+
+<script>
+import Message from './Message'
+// import { mapState } from 'vuex'
+
+export default {
+  name: 'ConversationContainer',
+
+  props: {
+    conversation: {
+      type: Object,
+      required: true
+    },
+    id: {
+      type: String,
+      required: true
+    }
+  },
+
+  data: () => ({
+    newMessageText: null
+  }),
+
+  created () {
+    this.$store.state.db.collection('conversations').doc(this.id).onSnapshot(convo => {
+      let source = convo.metadata.hasPendingWrites ? 'Local' : 'Server'
+
+      console.log(`source ${source}`)
+
+      if (convo && convo.data()) {
+        console.log('data', convo.data())
+        convo.data().messages.forEach(message => this.$store.commit('conversations/ADD_MESSAGE', {
+          conversationId: this.id,
+          message
+        }))
+      }
+    })
+  },
+
+  methods: {
+    send () {
+      this.$store.dispatch('conversations/sendMessage', {
+        text: this.newMessageText,
+        created: Date.now(),
+        conversationId: this.id,
+        sender: this.$store.state.users.currentUser
+      })
+    }
+  },
+
+  components: {
+    Message
+  }
+}
+</script>

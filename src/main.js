@@ -7,13 +7,13 @@ import router from './router'
 import Vuetify from 'vuetify'
 
 import firebase from 'firebase'
-import firebaseConfig from '@/db/firebase.config'
 
-firebase.initializeApp(firebaseConfig)
+import store from '@/store'
+
+// Vue.config.productionTip = false
+Vue.config.devtools = true
 
 Vue.use(Vuetify)
-
-Vue.config.productionTip = false
 
 let app
 
@@ -22,6 +22,7 @@ firebase.auth().onAuthStateChanged(user => {
     app = new Vue({
       el: '#app',
       router,
+      store,
       components: { App },
       template: '<App/>'
     })
